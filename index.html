@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate Clicker Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background-color: #111;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            font-size: 40px;
+        }
+
+        #clickButton {
+            padding: 20px;
+            font-size: 20px;
+            background-color: limegreen;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+        }
+
+        #clickButton:hover {
+            background-color: green;
+        }
+
+        #timer, #level, #autoClickers, #highScore {
+            font-size: 25px;
+            margin: 10px;
+        }
+
+        #message {
+            font-size: 25px;
+            margin-top: 20px;
+        }
+
+        button.upgrade {
+            padding: 10px 15px;
+            margin: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔥 Ultimate Clicker Game 🔥</h1>
+
+    <p>Score: <span id="score">0</span></p>
+    <p id="timer">Time: 10s</p>
+    <p id="level">Level: 1</p>
+    <p id="autoClickers">Auto-Clicks: 0</p>
+    <p id="highScore">High Score: <span id="highScoreValue">0</span></p>
+    <button id="clickButton">Click Me!</button>
+
+    <div>
+        <h2>Upgrades</h2>
+        <button class="upgrade" id="buyAutoClicker">Buy Auto-Clicker (Cost: 10)</button>
+        <button class="upgrade" id="levelUpButton">Level Up (Cost: 20)</button>
+    </div>
+
+    <p id="message"></p>
+
+    <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+
+    <script>
+        let score = 0;
+        let timeLeft = 10;
+        let gameActive = true;
+        let level = 1;
+        let autoClickers = 0;
+
+        const scoreEl = document.getElementById("score");
+        const timerEl = document.getElementById("timer");
+        const messageEl = document.getElementById("message");
+        const button = document.getElementById("clickButton");
+        const clickSound = document.getElementById("clickSound");
+        const highScoreEl = document.getElementById("highScoreValue");
+        const levelEl = document.getElementById("level");
+        const autoClickersEl = document.getElementById("autoClickers");
+
+        const buyAutoClickerBtn = document.getElementById("buyAutoClicker");
+        const levelUpBtn = document.getElementById("levelUpButton");
+
+        // Load high score
+        let highScore = localStorage.getItem("clickerHighScore") || 0;
+        highScoreEl.textContent = highScore;
+
+        // Position button randomly
+        function moveButton() {
+            const x = Math.random() * (window.innerWidth - button.offsetWidth);
+            const y = Math.random() * (window.innerHeight - button.offsetHeight - 150) + 50;
+            button.style.left = x + "px";
+            button.style.top = y + "px";
+        }
+
+        moveButton();
+
+        // Countdown timer
+        const timer = setInterval(() => {
+            if (!gameActive) return;
+
+            timeLeft--;
+            timerEl.textContent = "Time: " + timeLeft + "s";
+
+            if (timeLeft <= 3) {
+                document.body.style.backgroundColor = "darkred";
+            }
+
+            if (timeLeft <= 0) {
+                gameActive = false;
+                clearInterval(timer);
+                messageEl.textContent = "Time's up! Final score: " + score;
+                button.disabled = true;
+                buyAutoClickerBtn.disabled = true;
+                levelUpBtn.disabled = true;
+
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem("clickerHighScore", highScore);
+                    highScoreEl.textContent = highScore;
+                    messageEl.textContent += " 🎉 New High Score!";
+                }
+            }
+        }, 1000);
+
+        // Auto-clickers
+        setInterval(() => {
+            if (!gameActive || autoClickers === 0) return;
+            score += autoClickers;
+            scoreEl.textContent = score;
+        }, 1000);
+
+        // Click button
+        button.addEventListener("click", () => {
+            if (!gameActive) return;
+            score += 1 * level; // level multiplies click value
+            scoreEl.textContent = score;
+
+            moveButton();
+            clickSound.currentTime = 0;
+            clickSound.play();
+        });
+
+        // Buy auto-clicker
+        buyAutoClickerBtn.addEventListener("click", () => {
+            const cost = 10 + autoClickers * 5;
+            if (score >= cost) {
+                score -= cost;
+                autoClickers++;
+                autoClickersEl.textContent = "Auto-Clicks: " + autoClickers;
+                scoreEl.textContent = score;
+            } else {
+                messageEl.textContent = "Not enough points for Auto-Clicker!";
+            }
+        });
+
+        // Level up
+        levelUpBtn.addEventListener("click", () => {
+            const cost = 20 * level;
+            if (score >= cost) {
+                score -= cost;
+                level++;
+                levelEl.textContent = "Level: " + level;
+                scoreEl.textContent = score;
+                messageEl.textContent = "Leveled up! Clicks are now x" + level;
+            } else {
+                messageEl.textContent = "Not enough points to level up!";
+            }
+        });
+    </script>
+
+</body>
+</html>
